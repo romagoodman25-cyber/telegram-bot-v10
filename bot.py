@@ -1,6 +1,6 @@
 # 🔐 ТВОИ ДАННЫЕ
 BOT_TOKEN = "ТВОЙ_ТОКЕН"
-CHAT_ID = "ТВОЙ_CHAT_ID"
+CHAT_ID = 8437661219
 
 # 📩 ОТПРАВКА В TELEGRAM
 def send_telegram_message(text):
