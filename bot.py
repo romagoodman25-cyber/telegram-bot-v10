@@ -1,5 +1,5 @@
 # 🔐 ТВОИ ДАННЫЕ
-BOT_TOKEN = "ТВОЙ_ТОКЕН"
+BOT_TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
 CHAT_ID = 8437661219
 
 # 📩 ОТПРАВКА В TELEGRAM
