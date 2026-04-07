@@ -7,9 +7,9 @@ from flask import Flask
 # 🔑 НАСТРОЙКИ (ВСТАВЬ СВОИ)
 # ==============================
 
-API_KEY = "ТВОЙ_API_KEY"
-TELEGRAM_TOKEN = "ТВОЙ_ТГ_ТОКЕН"
-CHAT_ID = "ТВОЙ_CHAT_ID"
+API_KEY = "3f7101256f6adfdda2c7430cf15ac5d7"
+TELEGRAM_TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
+CHAT_ID = 8437661219
 
 # ==============================
 # 📡 TELEGRAM
