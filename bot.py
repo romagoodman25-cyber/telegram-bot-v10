@@ -6,9 +6,10 @@ from threading import Thread
 # =====================
 # НАСТРОЙКИ
 # =====================
-TOKEN = "ТВОЙ_ТОКЕН"
-CHAT_ID = "ТВОЙ_ID"
-API_KEY = "ТВОЙ_API_KEY"
+TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
+CHAT_ID = 8437661219
+
+API_KEY = "3f7101256f6adfdda2c7430cf15ac5d7"
 
 # =====================
 # FLASK (чтобы Render не усыпил)
