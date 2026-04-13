@@ -2,7 +2,7 @@ import requests
 import time
 
 # ===== НАСТРОЙКИ =====
-API_KEY = "3f7101256f6adfdda2c7430cf15ac5d7"
+API_KEY = "rnd_RdDPi1QQwihKoPNdvU1ghjg8leGV"
 TELEGRAM_TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
 TELEGRAM_CHAT_ID = 8437661219
 
