@@ -23,7 +23,7 @@ def betting_recommendation(update: Update, context: CallbackContext) -> None:
 
 def main():
  # Токен Telegram-бота
-    TOKEN = '8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI'
+    TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
 
     # Настройте Updater и Dispatcher
     updater = Updater(TOKEN)
