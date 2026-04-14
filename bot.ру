@@ -1,44 +1,115 @@
-telegram from
-Update import telegram from
-logging import.ext import Updater, CommandHandler, CallbackContext
+import requests
+import time
 
-# Настройка ведения журнала
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
- level=logging.INFO)
-logger = logging.getLogger(__name__)
+# === НАСТРОЙКИ ===
+API_KEY = "3f7101256f6adfdda2c7430cf15ac5d7"
+BOT_TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
+CHAT_ID = 8437661219
 
-# Команда запуска — знакомство с ботом
-def start(update: Update, context: CallbackContext) -> None:
- update.message.reply_text('Привет! Я ваш помощник по ставкам на спорт. Чем я могу вам помочь сегодня?')
+# === ФУНКЦИЯ ОТПРАВКИ В ТГ ===
+def send_telegram(text):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {
+        "chat_id": CHAT_ID,
+        "text": text
+    }
+    requests.post(url, data=data)
 
-# Команда справки — объяснение доступных команд
-def help(update: Update, context: CallbackContext) -> None:
- update.message.reply_text('Вы можете спросить меня о прогнозах на матчи, статистике и аналитике ставок.')
+# === ПОЛУЧЕНИЕ МАТЧЕЙ ===
+def get_matches():
+    url = f"https://api.the-odds-api.com/v4/sports/soccer/odds/?apiKey={API_KEY}&regions=eu&markets=h2h"
+    res = requests.get(url)
+    return res.json()
 
-# Команда рекомендаций по ставкам
-def betting_recommendation(update: Update, context: CallbackContext) -> None:
- # Пока что мы отправим пробный прогноз
-    рекомендация = "Судя по последним статистическим данным, у команды А 60-процентный шанс на победу в матче с командой Б."
-    update.message.reply_text(рекомендация)
+# === РАСЧЕТ VALUE (УЛУЧШЕННЫЙ) ===
+def calculate_value(prob, odds):
+    return (prob * odds) - 1
 
-def main():
- # Токен Telegram-бота
-    TOKEN = "8472246861:AAF599zkV7yjRjeKhoiVzdlgW4e-DD1e2WI"
+# === УМНАЯ МОДЕЛЬ V16 ===
+def smart_model(home_odds, away_odds):
+    home_prob = 1 / home_odds
+    away_prob = 1 / away_odds
+    total = home_prob + away_prob
+    home_prob /= total
+    away_prob /= total
 
-    # Настройте Updater и Dispatcher
-    updater = Updater(TOKEN)
+    # V16 УЛУЧШЕНИЯ
+    if home_odds < 1.8:
+        home_prob *= 0.95
+    if away_odds < 1.8:
+        away_prob *= 0.95
+    if home_odds > 3:
+        home_prob *= 1.1
+    if away_odds > 3:
+        away_prob *= 1.1
 
- # Диспетчер для обработки команд
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
- dp.add_handler(CommandHandler("help", help))
- dp.add_handler(CommandHandler("betting_recommendation", betting_recommendation))
+    return home_prob, away_prob
 
- # Запуск опроса для обработки входящих сообщений
-    updater.start_polling()
+# === ФИЛЬТР ПРОФИ СТАВОК ===
+def is_pro_bet(value, odds):
+    if value < 0.15 or odds < 1.5 or odds > 6:
+        return False
+    return True
 
- # Блокировка до тех пор, пока пользователь не отправит сигнал о прекращении
-    updater.idle()
+# === ОСНОВНОЙ СКАНЕР ===
+def scan():
+    print("🔍 V16 SCAN...")
+    matches = get_matches()
 
-if __name__ == '__main__':
- main()
+    best_bet = None
+    best_value = 0.0
+
+    for match in matches:
+        try:
+            home = match.get("home_team", "")
+            away = match.get("away_team", "")
+            outcomes = (
+                match.get("bookmakers", [{}])[0]
+                .get("markets", [{}])[0]
+                .get("outcomes", [])
+            )
+            home_odds = away_odds = None
+
+            for o in outcomes:
+                name = o.get("name", "")
+                price = o.get("price")
+                if name == home and price is not None:
+                    home_odds = price
+                elif name == away and price is not None:
+                    away_odds = price
+
+            if not (home_odds and away_odds):
+                continue
+
+            home_prob, away_prob = smart_model(home_odds, away_odds)
+            home_value = calculate_value(home_prob, home_odds)
+            away_value = calculate_value(away_prob, away_odds)
+
+            if is_pro_bet(home_value, home_odds) and home_value > best_value:
+                best_value, best_bet = home_value, (home, home_odds, home_value)
+            if is_pro_bet(away_value, away_odds) and away_value > best_value:
+                best_value, best_bet = away_value, (away, away_odds, away_value)
+
+        except Exception as e:
+            continue
+
+    if best_bet:
+        team, odds, value = best_bet
+        msg = f"""🔥 V16 PRO SIGNAL
+
+👉 {team}
+Кэф: {round(odds, 2)}
+Value: {round(value, 3)}
+
+📊 Фильтр: PRO + Антипопан + Value"""
+        print(msg)
+        send_telegram(msg)
+    else:
+        msg = "❌ V16: Нет value сегодня"
+        print(msg)
+        send_telegram(msg)
+
+# === БЕСКОНЕЧНЫЙ ЗАПУСК ===
+while True:
+    scan()
+    time.sleep(900) # каждые 15 минут
